@@ -56,6 +56,8 @@ public class TicTacToeSpec {
 编写完测试代码后, 运行测试, 由于此时`play()`方法还不存在, 因此测试无法通过.
 如果此时测试通过了, 就说明测试代码有问题.
 
+如果仅仅添加了一个空的`play()`方法, 测试也不会通过, 因为没有抛出异常.
+
 实现`play`方法
 ```java
 public class TicTacToe {
@@ -73,7 +75,7 @@ public class TicTacToe {
 
 **实现只能包含让测试通过的最少代码**
 
-对于第 2 个需求, 需要重写测试方法
+对于第 2 个需求, 需要添加测试方法
 ```
     /**
      * 如果棋子超过 y 轴的边界, 将引发 RuntimeException
@@ -85,7 +87,7 @@ public class TicTacToe {
     }
 ```
 
-此时测试, 必须不能通过
+此时测试, 必须不能通过才行
 
 实现该需求
 ```
