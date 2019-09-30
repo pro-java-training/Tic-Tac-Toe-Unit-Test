@@ -100,9 +100,9 @@ public class TicTacToe {
     }
 ```
 
-现在测试, 就能通过了.
+再次测试, 就能通过了.
 
-现在重构代码
+接下来重构代码
 ```
     public String play(int x, int y) {
         checkAxis(x);
@@ -118,7 +118,7 @@ public class TicTacToe {
 
 重构代码没有改变 `play()`的功能, 只是增强了可读性. 因此只要之前的测试全部通过, 就完全可以保证重构是安全的.
 
-###代码覆盖率
+### 代码覆盖率
 
     gradle clean test jacocoTestReport
 
