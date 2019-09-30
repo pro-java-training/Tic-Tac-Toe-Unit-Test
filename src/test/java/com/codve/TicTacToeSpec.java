@@ -34,7 +34,7 @@ public class TicTacToeSpec {
     @Test
     public void whenYOutsideBoardThenRuntimeException() {
         exception.expect(RuntimeException.class);
-        ticTacToe.play(5, 2);
+        ticTacToe.play(2, 5);
     }
 
     /**
