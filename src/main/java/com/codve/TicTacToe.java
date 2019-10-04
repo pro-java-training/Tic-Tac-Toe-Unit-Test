@@ -1,7 +1,12 @@
 package com.codve;
 
+import com.codve.mongo.TicTacToeBean;
+
+import java.net.UnknownHostException;
+
 public class TicTacToe {
 
+    public static final Object No_WINNER = "No winner";
     private static final int SIZE = 3;
 
     private Character[][] board = {
@@ -12,11 +17,32 @@ public class TicTacToe {
 
     private char lastPlayer = '\0';
 
+    private TicTacToeCollection ticTacToeCollection;
+
+    private int turn = 0;
+
+    // 使用实例化的对象
+    public TicTacToe() throws UnknownHostException {
+        this(new TicTacToeCollection());
+    }
+
+    // 使用模拟的对象
+    protected TicTacToe(TicTacToeCollection collection) {
+        ticTacToeCollection = collection;
+        drop();
+    }
+
+
+    protected TicTacToeCollection getTicTacToeCollection() {
+        return ticTacToeCollection;
+    }
+
+
     public String play(int x, int y) {
         checkAxis(x);
         checkAxis(y);
         lastPlayer = nextPlayer();
-        setBox(x, y, lastPlayer);
+        setBox(new TicTacToeBean(turn++, x, y, lastPlayer));
         if (isWin(x, y)) {
             return lastPlayer + " is the winner";
         } else if (isDraw()) {
@@ -59,11 +85,15 @@ public class TicTacToe {
         }
     }
 
-    private void setBox(int x, int y, char lastPlayer) {
-        if (board[x - 1][y - 1] != '\0') {
+    private void setBox(TicTacToeBean bean) {
+        if (board[bean.getX() - 1][bean.getY() - 1] != '\0') {
             throw new RuntimeException("box is occupied.");
         } else {
-            board[x - 1][y - 1] = lastPlayer;
+            board[bean.getX() - 1][bean.getY() - 1] = lastPlayer;
+            boolean result = getTicTacToeCollection().saveMove(bean);
+            if (!result) {
+                throw new RuntimeException("save to db failed.");
+            }
         }
     }
 
@@ -72,5 +102,12 @@ public class TicTacToe {
             return 'O';
         }
         return 'X';
+    }
+
+    public void drop() {
+        boolean result = getTicTacToeCollection().drop();
+        if (!result) {
+            throw new RuntimeException("drop db failed.");
+        }
     }
 }

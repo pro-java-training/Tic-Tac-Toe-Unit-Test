@@ -1,12 +1,17 @@
 package com.codve;
 
+import com.codve.mongo.TicTacToeBean;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.net.UnknownHostException;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.*;
 
 public class TicTacToeSpec {
     @Rule
@@ -14,9 +19,14 @@ public class TicTacToeSpec {
 
     private TicTacToe ticTacToe;
 
+    private TicTacToeCollection collection;
+
     @Before
-    public final void before() {
-        ticTacToe = new TicTacToe();
+    public final void before() throws UnknownHostException {
+        collection = mock(TicTacToeCollection.class);
+        doReturn(true).when(collection).saveMove(any(TicTacToeBean.class));
+        doReturn(true).when(collection).drop();
+        ticTacToe = new TicTacToe(collection);
     }
 
     /**
@@ -161,5 +171,66 @@ public class TicTacToeSpec {
         ticTacToe.play(3, 3);
         String actual = ticTacToe.play(3, 2);
         assertEquals("The result is draw", actual);
+    }
+
+    /**
+     * 游戏开始后数据库需存在
+     */
+    @Test
+    public void whenInitThenDbIsSet() {
+        assertNotNull(ticTacToe.getTicTacToeCollection());
+    }
+
+    /**
+     * 每一次下棋, 都会保存操作入库
+     */
+    @Test
+    public void whenPlayThenSaveIsInvoke() {
+        TicTacToeBean move = new TicTacToeBean(1, 1, 3, 'X');
+        ticTacToe.play(move.getX(), move.getY());
+        verify(collection, times(1)).saveMove(move);
+    }
+
+    /**
+     * 下棋后无法存储抛出异常
+     */
+    @Test
+    public void whenPlayAndSaveReturnFalseThenThrowException() {
+        doReturn(false).when(collection).saveMove(any(TicTacToeBean.class));
+        TicTacToeBean move = new TicTacToeBean(1, 1, 3, 'X');
+        exception.expect(RuntimeException.class);
+        ticTacToe.play(move.getX(), move.getY());
+    }
+
+    /**
+     * 每次下棋后轮次增加 1
+     */
+    @Test
+    public void whenPlayInvokeThenTurnIncrease() {
+        TicTacToeBean move1 = new TicTacToeBean(1, 1, 1, 'X');
+        ticTacToe.play(move1.getX(), move1.getY());
+        verify(collection, times(1)).saveMove(move1);
+
+        TicTacToeBean move2 = new TicTacToeBean(2, 1, 2, 'O');
+        ticTacToe.play(move1.getX(), move2.getY());
+        verify(collection, times(1)).saveMove(move2);
+    }
+
+    /**
+     * 游戏初始化后删除旧的数据库
+     */
+    @Test
+    public void whenInitThenDrpInvoke() {
+        verify(collection, times(1)).drop();
+    }
+
+    /**
+     * 数据库删除失败时抛出异常
+     */
+    @Test
+    public void whenDropFailedThenRuntimeException() {
+        doReturn(false).when(collection).drop();
+        exception.expect(RuntimeException.class);
+        new TicTacToe(collection);
     }
 }
